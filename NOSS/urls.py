@@ -20,6 +20,7 @@ from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^openvpn_password/',apis.views.openvpn_password,name='openvpn_password'),
 
 )

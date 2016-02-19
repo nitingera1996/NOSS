@@ -3,6 +3,8 @@ import requests
 import json
 from bs4 import BeautifulSoup
 from django.http import HttpResponse
+from django.contrib.auth.models import User
+from apis.models import *
 
 def openvpn_password(request):
     response_dict={}
