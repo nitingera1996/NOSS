@@ -4,6 +4,7 @@ import json
 from bs4 import BeautifulSoup
 from django.http import HttpResponse
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from apis.models import *
 import string
 import random
@@ -25,6 +26,7 @@ def openvpn_password(request):
             response_dict['password']=now_password
     return HttpResponse(json.dumps(response_dict), content_type='application/javascript') 
 
+@login_required(login_url='/account/login')
 def profile(request):
     context = {}
     ud = UserDetails.objects.filter(user=request.user)
