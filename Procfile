@@ -1,0 +1,1 @@
+web: gunicorn NOSS.wsgi --log-file -
