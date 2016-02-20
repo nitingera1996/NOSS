@@ -23,5 +23,5 @@ urlpatterns = patterns('',
     url(r'^accounts/', include('allauth.urls')),
     url(r'^profile/$', apis.views.profile, name='profile'),
     url(r'^openvpn_password/',apis.views.openvpn_password, name='openvpn_password'),
-
+    url(r'^airroute/$',apis.views.air_route,name='airroute'),
 )
