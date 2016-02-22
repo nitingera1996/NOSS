@@ -374,3 +374,102 @@ def valid_date(datestring):
         return True
     except ValueError:
         return False
+
+
+def predict_city(request):
+    response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
+    frm=request.GET.get('origin', '')
+    if frm=="":
+        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+    date=request.GET.get('departure_date', '')
+    if valid_date(date)==False:
+        if date!="":
+            return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
+        else:
+            return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
+    duration=request.GET.get('duration','')
+    max_min_ranges_rail={'1':{'min_range':0.00,'max_range':100.00},
+                      '2':{'min_range':100.00,'max_range':300.00},
+                      '3':{'min_range':200.00,'max_range':500.00},
+                      '4':{'min_range':400.00,'max_range':700.00},
+                      '5':{'min_range':500.00,'max_range':1000.00},
+                      '6':{'min_range':600.00,'max_range':1300.00},
+                      '7':{'min_range':700.00,'max_range':1500.00}}
+    max_distance=max_min_ranges_rail[duration]['max_range']
+    min_distance=max_min_ranges_rail[duration]['min_range']
+    try:
+        payload={'address':frm,'key':google_geocoding_api_key}
+        frm_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
+        if frm_loc_ob.status_code == requests.codes.ok:
+            # print "OK"
+            frm_loc_json=frm_loc_ob.json()
+            # print frm_loc_json
+            # pp.pprint(frm_loc_json['results'][0]["geometry"]["location"])
+            location=frm_loc_json['results'][0]["geometry"]["location"]
+            frm_lat=location["lat"]
+            frm_lng=location["lng"]
+            # print type(frm_lng)
+    except:
+        frm_lat=25.28
+        frm_lng=82.96
+    city_results=[]
+    count=0
+    for city in City.objects.all():
+        dist=distance_on_unit_sphere(frm_lat,frm_lng,float(city.lat),float(city.lng))
+        if dist <= max_distance and dist >= min_distance:
+            # print city
+            count+=1
+            city_result={}
+            city_result['city']=city.name
+            city_places=city.places_set.all()
+            # print city_places
+            city_result_places=[]
+            for place in city_places:
+                p={}
+                p['name']=place.name
+                p['img']=place.img_src
+                p['about']=place.about
+                city_result_places.append(p)
+            city_result['city_places']=city_result_places
+            city_results.append(city_result)
+        if count >= 5:
+            break
+
+            # print city
+    response_dict['city_results']=city_results
+    return HttpResponse(json.dumps(response_dict),content_type='application/javascript')
+
+
+
+
+
+ 
+def distance_on_unit_sphere(lat1, long1, lat2, long2):
+ 
+    # Convert latitude and longitude to 
+    # spherical coordinates in radians.
+    degrees_to_radians = math.pi/180.0
+         
+    # phi = 90 - latitude
+    phi1 = (90.0 - lat1)*degrees_to_radians
+    phi2 = (90.0 - lat2)*degrees_to_radians
+         
+    # theta = longitude
+    theta1 = long1*degrees_to_radians
+    theta2 = long2*degrees_to_radians
+         
+    # Compute spherical distance from spherical coordinates.
+         
+    # For two locations in spherical coordinates 
+    # (1, theta, phi) and (1, theta', phi')
+    # cosine( arc length ) = 
+    #    sin phi sin phi' cos(theta-theta') + cos phi cos phi'
+    # distance = rho * arc length
+     
+    cos = (math.sin(phi1)*math.sin(phi2)*math.cos(theta1 - theta2) + 
+           math.cos(phi1)*math.cos(phi2))
+    arc = math.acos( cos )
+ 
+    # Remember to multiply arc by the radius of the earth 
+    # in your favorite set of units to get length.
+    return arc*6373
