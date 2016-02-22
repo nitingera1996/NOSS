@@ -9,9 +9,12 @@ from apis.models import *
 import string
 import random
 import datetime
+import ast
 
 google_geocoding_api_key="AIzaSyAVPebYRc6oQkB9gT0f-z63IStnR02bQ34"
 amadeus_api_key="oJS13442zS4sbBnZVeGa6Y6Y38BzmPyC"
+railway_api_key="jruwt3809"
+google_matrix_api_key="AIzaSyBqLD2_EXtqKWi8WPWEKiELVNrINuTa91s"
 
 def generate_key():
     s = string.letters + string.digits
@@ -48,26 +51,125 @@ def profile(request):
     print ud
     return render(request, "profile.html", context)
 
+def rail_route(request):
+    response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
+    frm=request.GET.get('origin', '')
+    if frm==None:
+        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+    to=request.GET.get('destination', '')
+    if to==None:
+        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
+    date=request.GET.get('departure_date', '')
+    if frm==to:
+        return HttpResponse(json.dumps({'status':"False",'error':"no railroute possible"}),content_type='application/javascript')
+    if valid_date(date)==False:
+        if date:
+            return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
+        else:
+            return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
+    date=date[8:10]+'-'+date[5:7]+'-'+date[:4]
+    print frm,to,date
+    try:
+        payload={'address':frm,'key':google_geocoding_api_key}
+        frm_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
+        if frm_loc_ob.status_code == requests.codes.ok:
+            frm_loc_json=frm_loc_ob.json()
+            add=frm_loc_json['results'][0]["address_components"]
+            flag=1
+            for element in add:
+                if element['types'][0]=="administrative_area_level_2":
+                    source_city=element["long_name"]
+                    flag=0
+            if flag:
+                source_city=frm
+    except requests.exceptions.RequestException as e:
+        print e
+    try:
+        payload={'address':to,'key':google_geocoding_api_key}
+        to_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
+        if to_loc_ob.status_code == requests.codes.ok:
+            to_loc_json=to_loc_ob.json()
+            add=to_loc_json['results'][0]["address_components"]
+            flag=1
+            for element in add:
+                if element['types'][0]=="administrative_area_level_2":
+                    dest_city=element["long_name"]
+                    flag=0
+            if flag:
+                dest_city=to
+    except requests.exceptions.RequestException as e:
+        print e
+    travel_class=request.GET.get('travel_class', '')
+    if travel_class==None:
+        travel_class="3A"
+    response_dict['from']=source_city
+    response_dict['to']=dest_city
+    try:
+        payload={'from_city':source_city,'to_city':dest_city,'class':travel_class,'date':date,'adults':1,'children':0,'male_seniors':0,'female_seniors':0}
+        path_html = requests.get('http://www.cleartrip.com/trains/results',params=payload)
+        path_html =path_html.text
+        soup = BeautifulSoup(path_html,'html.parser')
+        train_data = soup.find_all("script", type="text/javascript",src=False)[2].get_text()[19:]
+        end_pos=train_data.find(',"trips":')
+        train_data = train_data[:(end_pos)]+'}'
+        train_data=str(train_data)
+        train_data=train_data.replace("true","True")
+        end_pos =train_data.find(',"3":{"distance')
+        if end_pos>0:
+            train_data=train_data[:end_pos]+'}}'
+        train_data=ast.literal_eval(train_data)
+        response_dict['train_data']=train_data
+        frm_stn_name=train_data["trains"]["1"]["from"]+" Station"
+        to_stn_name=train_data["trains"]["1"]["to"]+" Station"
+        my_dict={}
+        try:
+            payload={'origins':frm,'destinations':frm_stn_name,'key':google_matrix_api_key}
+            my_loc_to_stn=requests.get('https://maps.googleapis.com/maps/api/distancematrix/json',params=payload)
+            if my_loc_to_stn.status_code == requests.codes.ok:
+                my_loc_to_stn=my_loc_to_stn.json()
+                my_dict['dist1']=my_loc_to_stn['rows'][0]['elements'][0]['distance']['text']
+                my_dict['time1']=my_loc_to_stn['rows'][0]['elements'][0]['duration']['text']
+        except requests.exceptions.RequestException as e:
+            print e       
+        try:
+            payload={'origins':to_stn_name,'destinations':to,'key':google_matrix_api_key}
+            my_loc_to_stn=requests.get('https://maps.googleapis.com/maps/api/distancematrix/json',params=payload)
+            if my_loc_to_stn.status_code == requests.codes.ok:
+                my_loc_to_stn=my_loc_to_stn.json()
+                my_dict['dist2']=my_loc_to_stn['rows'][0]['elements'][0]['distance']['text']
+                my_dict['time2']=my_loc_to_stn['rows'][0]['elements'][0]['duration']['text']
+        except requests.exceptions.RequestException as e:
+            print e
+        response_dict['step1']="Travel from "+ frm +" to " + frm_stn_name +" which is "+ my_dict['dist1']+" away and takes "+my_dict['time1']
+        response_dict['step2']="Board the suitable train form the list"
+        response_dict['step3']="Travel from "+ to_stn_name +" to " + to + " which is "+ my_dict['dist2']+" away and takes "+my_dict['time2']
+    except requests.exceptions.RequestException as e:
+        print e
+    return HttpResponse(json.dumps(response_dict),content_type='application/javascript')
+            
+
+
+
 def air_route(request):
     response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
     frm=request.GET.get('origin', '')
     if frm==None:
-    	return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
     to=request.GET.get('destination', '')
     if to==None:
-    	return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
+        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
     date=request.GET.get('departure_date', '')
     if frm==to:
-    	return HttpResponse(json.dumps({'status':"False",'error':"no airroute possible"}),content_type='application/javascript')
+        return HttpResponse(json.dumps({'status':"False",'error':"no airroute possible"}),content_type='application/javascript')
     if valid_date(date)==False:
-    	if date:
-    		return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
-    	else:
-    		return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
+        if date:
+            return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
+        else:
+            return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
 
     travel_class=request.GET.get('travel_class', '')
     if travel_class==None:
-    	travel_class="ECONOMY"
+        travel_class="ECONOMY"
     print frm,to,date,travel_class
     try:
         payload={'address':frm,'key':google_geocoding_api_key}
@@ -75,7 +177,7 @@ def air_route(request):
         if frm_loc_ob.status_code == requests.codes.ok:
             # print "OK"
             frm_loc_json=frm_loc_ob.json()
-    		# pp.pprint(frm_loc_json['results'][0]["geometry"]["location"])
+            # pp.pprint(frm_loc_json['results'][0]["geometry"]["location"])
             location=frm_loc_json['results'][0]["geometry"]["location"]
             frm_lat=location["lat"]
             frm_lng=location["lng"]
@@ -96,19 +198,19 @@ def air_route(request):
         if to_loc_ob.status_code == requests.codes.ok:
             # print "OK"
             to_loc_json=to_loc_ob.json()
-    		# pp.pprint(frm_loc_json['results'][0]["geometry"]["location"])
+            # pp.pprint(frm_loc_json['results'][0]["geometry"]["location"])
             location=to_loc_json['results'][0]["geometry"]["location"]
             to_lat=location["lat"]
             to_lng=location["lng"]
             try:
                 payload={"apikey":amadeus_api_key,'latitude':to_lat,'longitude':to_lng}
                 near_airport_loc_ob_2=requests.get('https://api.sandbox.amadeus.com/v1.2/airports/nearest-relevant',params=payload)
-    			# print near_airport_loc_ob
+                # print near_airport_loc_ob
                 if near_airport_loc_ob_2.status_code == requests.codes.ok:
                     near_airport_loc_json_2=near_airport_loc_ob_2.json()
                     dic_to=near_airport_loc_json_2[0]
                     # print dic_to
-    				# pp.pprint(near_airport_loc_json_2[0])
+                    # pp.pprint(near_airport_loc_json_2[0])
             except requests.exceptions.RequestException as e:
                 print e
 
@@ -129,15 +231,15 @@ def air_route(request):
             flights_return_json=flights_return_ob.json()
             # print flights_return_json
             flights_array=flights_return_json["results"]
-    		# print flights_return_ob.from_cache
-    		# pp.pprint(flights_array)
+            # print flights_return_ob.from_cache
+            # pp.pprint(flights_array)
             response_dict['status']="True"
             response_dict['step 1']="From "+frm+" to "+dic_from['airport_name']+" travelling distance "+str(dic_from["distance"])+" km"
             response_dict['step_2']="From "+dic_from['airport_name']+" to "+dic_to['airport_name']
             response_dict['flights']=flights_array
             response_dict['step_3']="From "+dic_to['airport_name']+" to "+to+" travelling distance "+str(dic_to["distance"])+" km"
         else:
-        	return HttpResponse(json.dumps({'status':"False",'error':"departure_date should be after today's day"}),content_type='application/javascript')
+            return HttpResponse(json.dumps({'status':"False",'error':"departure_date should be after today's day"}),content_type='application/javascript')
     except requests.exceptions.RequestException as e:
         print e
     return HttpResponse(json.dumps(response_dict),content_type='application/javascript')
