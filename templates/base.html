@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>NOSS Developer Platform</title>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">NOSS</a>
+      </div>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="#">DOC's</a></li>
+        <li><a href="#">FAQ's</a></li> 
+        <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+        <li><a href="#"><i class="fa fa-twitter"></i></a></li> 
+        <li>
+          {% if request.user.is_authenticated %}
+            <a href="/accounts/logout">Logout</a>
+          {% else %}
+            <a href="/accounts/login">Login</a>
+          {% endif %}
+        </li>
+      </ul>
+    </div>
+  </nav>
+{% block content %}
+
+{% endblock%}	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<footer id="footer"><center>Copyright &copy; 2015 ANI technologies</center></footer>
+</body>
+</html>

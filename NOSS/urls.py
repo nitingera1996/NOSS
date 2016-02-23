@@ -27,4 +27,5 @@ urlpatterns = patterns('',
     url(r'^airroute/$',apis.views.air_route,name='airroute'),
     url(r'^railroute/$',apis.views.rail_route,name='railroute'),
     url(r'^predict_city/$',apis.views.predict_city,name='predict_city'),
+    url(r'^newtoken/$', apis.views.newtoken, name='newtoken'),
 )

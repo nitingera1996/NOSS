@@ -2,7 +2,7 @@ from django.shortcuts import render
 import requests
 import json
 from bs4 import BeautifulSoup
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from apis.models import *
@@ -486,3 +486,16 @@ def docs(request):
 def faqs(request):
     context = {}
     return render(request, 'faqs.html', context)
+
+@login_required(login_url='/account/login')
+@ratelimit(key='ip', rate='2/h', block=True)
+def newtoken(request):
+    if request.method == "POST":
+        try:
+            u = UserDetails.objects.get(user=request.user)
+            u.key = generate_key()
+            u.save()
+            return JsonResponse({"token":u.key})
+        except Exception as e:
+            print e
+            return JsonResponse({"error":"true"})

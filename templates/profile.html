@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>NOSS | profile</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 	<p>Your api key is: <b>{{ud.key}}</b></p>
-</body>
-</html>
+	<form action="/newtoken/" method="post">
+		{% csrf_token %}
+		<button type="submit" class="btn">Generate new token</button>
+	</form>
+{% endblock %}
