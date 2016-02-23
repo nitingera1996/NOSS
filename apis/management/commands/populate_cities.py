@@ -50,6 +50,7 @@ class Command(BaseCommand):
 							data = r.text
 							soup = BeautifulSoup(data)
 							tags=soup.find_all('figure')
+							c=City.objects.get(name=frm)
 							for t in tags:
 								try:
 									# print t.get('class')[0]
@@ -86,6 +87,23 @@ class Command(BaseCommand):
 										# # print word1
 										# t.save()
 										c.tags.add(t)
+							# c=City.objects.get(name=frm)
+							try:
+								tags=soup.find_all('section')
+								for t in tags:
+									if t.get('class')[0]=='place-visit-icon':
+										t1=t.aside.ul.find_all('li')
+										for t2 in t1:
+											# print t2.get_text()
+											word1 = " ".join(re.findall("[a-zA-Z]+", t2.get_text()))
+											t=Tags.objects.get_or_create(name=word1)
+											# self.stdout.write(word1)
+											# # self.stdout.write(word1)
+											# # print word1
+											# t.save()
+											c.tags.add(t)
+							except:
+								pass
 							c.save()
 						except:
 							pass

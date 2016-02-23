@@ -28,4 +28,6 @@ urlpatterns = patterns('',
     url(r'^railroute/$',apis.views.rail_route,name='railroute'),
     url(r'^predict_city/$',apis.views.predict_city,name='predict_city'),
     url(r'^newtoken/$', apis.views.newtoken, name='newtoken'),
+    url(r'^docs/$', apis.views.docs, name='docs'),
+    url(r'^faqs/$', apis.views.faqs, name='faqs'),
 )
