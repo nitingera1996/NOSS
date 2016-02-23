@@ -41,11 +41,11 @@ def openvpn_password(request):
 @login_required(login_url='/account/login')
 def profile(request):
     context = {}
-    ud = UserDetails.objects.filter(user=request.user)
-    if not ud:
+    try:
+        ud = UserDetails.objects.get(user=request.user)
+    except Exception as e:
         ud = UserDetails.objects.create(user=request.user, key=generate_key())
-    context['ud'] = ud[0]
-    print ud
+    context['ud'] = ud
     return render(request, "profile.html", context)
 
 def air_route(request):
@@ -148,3 +148,7 @@ def valid_date(datestring):
         return True
     except ValueError:
         return False
+
+def index(request):
+    context = {}
+    return render(request, 'index.html', context)

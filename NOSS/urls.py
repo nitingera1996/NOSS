@@ -21,6 +21,7 @@ from django.conf.urls import patterns, include, url
 urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include('allauth.urls')),
+    url(r'^$', apis.views.index, name='index'),
     url(r'^profile/$', apis.views.profile, name='profile'),
     url(r'^openvpn_password/',apis.views.openvpn_password, name='openvpn_password'),
     url(r'^airroute/$',apis.views.air_route,name='airroute'),
