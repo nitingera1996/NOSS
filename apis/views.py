@@ -10,6 +10,7 @@ import string
 import random
 import datetime
 import ast
+import math
 
 google_geocoding_api_key="AIzaSyAVPebYRc6oQkB9gT0f-z63IStnR02bQ34"
 amadeus_api_key="oJS13442zS4sbBnZVeGa6Y6Y38BzmPyC"
@@ -249,22 +250,22 @@ def air_route(request):
     flag1,flag2=[0,0]
     response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
     frm=request.GET.get('origin', '')
-    if frm==None:
+    if frm=="":
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
     to=request.GET.get('destination', '')
-    if to==None:
+    if to=="":
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
     date=request.GET.get('departure_date', '')
     if frm==to:
         return HttpResponse(json.dumps({'status':"False",'error':"no airroute possible"}),content_type='application/javascript')
     if valid_date(date)==False:
-        if date:
+        if date!="":
             return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
         else:
             return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
 
     travel_class=request.GET.get('travel_class', '')
-    if travel_class==None:
+    if travel_class=="":
         travel_class="ECONOMY"
     print frm,to,date,travel_class
     try:
@@ -310,6 +311,8 @@ def air_route(request):
     except requests.exceptions.RequestException as e:
         print e
 
+    if dic_from['airport']==dic_to['airport']:
+        return HttpResponse(json.dumps({'status':"False",'error':"no airroute possible"}),content_type='application/javascript')
     if dic_from["distance"]>50:
         print "have to travel by train to airport"
         flag1=1
@@ -377,7 +380,7 @@ def valid_date(datestring):
 
 
 def predict_city(request):
-    response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
+    response_dict={} #example request=http://localhost:8000/predict_city/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3
     frm=request.GET.get('origin', '')
     if frm=="":
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
@@ -410,11 +413,11 @@ def predict_city(request):
             frm_lng=location["lng"]
             # print type(frm_lng)
     except:
-        frm_lat=25.28
+        frm_lat=25.28   # of Varanasi in case of no internet #BHU
         frm_lng=82.96
     city_results=[]
     count=0
-    for city in City.objects.all():
+    for city in City.objects.all().order_by('-rating'):
         dist=distance_on_unit_sphere(frm_lat,frm_lng,float(city.lat),float(city.lng))
         if dist <= max_distance and dist >= min_distance:
             # print city
