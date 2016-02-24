@@ -19,4 +19,6 @@ To install locally follow these steps.
 
 7. Populate ur database with python populate_cities.py
 
-8. Then run the server with python manage.py runserver
+8. Run python manage.py createcachetable
+
+9. Then run the server with python manage.py runserver
