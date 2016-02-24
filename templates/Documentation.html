@@ -1,0 +1,259 @@
+<html>
+<head>
+	<title>API Documentation</title>
+</head>
+<h3>Introduction</h3>
+<p>Welcome to the NOSS API! You can use our API to access NOSS API endpoints, which can get information on Rail Routes, Air Routes available you to from your current location to your final destination entered by you. You can also plan your journey with the number of days available to you; go through our predictions and come back within the time limites to various cities available according to your requirements.</p>
+<h3>Authentication</h3>
+<p>NOSS uses a all together method of authentication using public key and private key. First user need to register <a href="http://127.0.0.1:8000/accounts/login/">here</a>. He will get a public key which he need that to store secretly(just like api key) will sending request he need to encrypt the orgin address with that key and pass that encrypted string under parsed text.</p> Link to the algorithm is <a href="">here</a>.
+<h2>APIs</h2>
+<h3>Rail Route API</h3>
+<p><strong>Purpose:</strong> Get Rail Route</p>
+<p><strong>Pattern:</strong> http://localhost:8000/railroute/?departure_date=&lt;departure date&gt;&origin=&lt;origin address&gt;&duration=&lt;duration&gt;&public_key=&lt;public key&gt;y&parsed_string=&lt;parsed string&gt;</p>
+<table>
+<thead>
+<tr class="row-1 odd">
+	<th class="column-1"><div>Parameter</div></th><th class="column-2"><div>Description</div></th>
+</tr>
+</thead>
+<tbody class="row-hover">
+<tr class="row-2 even">
+	<td class="column-1">railroute</td><td class="column-2">App name</td>
+</tr>
+<tr class="row-3 odd">
+	<td class="column-1">departure_date</td><td class="column-2">Departure Date (Format: YYYY-MM-DD)</td>
+</tr>
+<tr class="row-4 even">
+	<td class="column-1">origin</td><td class="column-2">Origin Address (May Be Your Home Address)</td>
+</tr>
+<tr class="row-5 odd">
+	<td class="column-1">duration</td><td class="column-2">Time Duration</td>
+</tr>
+<tr class="row-6 even">
+	<td class="column-1">public_key</td><td class="column-2">Public Key</td>
+</tr>
+<tr class="row-7 odd">
+	<td class="column-1">parsed_string</td><td class="column-2">Parsed String</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> http://localhost:8000/railroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=3A&origin=IIT%20Varanasi&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=</p>
+<p>&nbsp;</p>
+<p><strong>JSON response:</strong><br /></p>
+<pre>response{&quot;from&quot;: &quot;Varanasi&quot;,
+	 &quot;to&quot;: &quot;Mathura&quot;,
+	  &quot;step3&quot;: &quot;Travel from Mathura Junction Station to Krishna Nagar, Mathura which is 4.3 km away and takes 15 mins&quot;,
+	   &quot;step2&quot;: &quot;Board the suitable train form the list&quot;,
+	    &quot;step1&quot;: &quot;Travel from IIT Varanasi to Varanasi Junction Station which is 12.0 km away and takes 32 mins&quot;,
+	     &quot;train_data&quot;: {&quot;trains&quot;: {&quot;1&quot;: {&quot;board_offset_days&quot;: [0], &quot;fare_class&quot;: &quot;3A&quot;,
+	      &quot;number&quot;: &quot;13237&quot;,
+	       &quot;from_stations&quot;: [205],
+	        &quot;allow_book&quot;: true,
+	         &quot;duration&quot;: 52800,
+	          &quot;from_code&quot;: &quot;BSB&quot;,
+	           &quot;from&quot;: &quot;Varanasi Junction&quot;,
+	            &quot;to_stations&quot;: [341],
+	             &quot;arrive_offset_times&quot;: [&quot;07:20:00&quot;],
+	              &quot;stops&quot;: 11, &quot;
+	              to&quot;: &quot;Mathura Junction&quot;,
+	               &quot;arrive_offset_days&quot;: [0],
+	                &quot;depart_date&quot;: &quot;03/04/2016&quot;,
+	                 &quot;fare&quot;: 1066,
+	                  &quot;running_days&quot;: &quot;0100011&quot;,
+	                   &quot;valid_classes&quot;: &quot;3A&quot;,
+	                    &quot;to_code&quot;: &quot;MTJ&quot;,
+	                     &quot;preferred_class&quot;: true,
+	                      &quot;train_id&quot;: 795,
+	                       &quot;board_offset_times&quot;: [&quot;16:40:00&quot;],
+	                        &quot;depart_time&quot;: &quot;16:40&quot;,
+	                         &quot;distance&quot;: 709,
+	                          &quot;valid_fare&quot;: &quot;1066&quot;,
+	                           &quot;name&quot;: &quot;Pnbe Kota Express&quot;,
+	                            &quot;arrive_date&quot;: &quot;04/04/2016&quot;,
+	                             &quot;arrive_time&quot;: &quot;07:20&quot;}}}}</pre>
+<h3>Air Route API</h3>
+<p><strong>Purpose:</strong> Get Air Route</p>
+<p><strong>Pattern:</strong> http://localhost:8000/airroute/?destination=&lt;Destination Address&gt;&departure_date=&lt;Departure Date&gt;&travel_class=&lt;Travel Class&gt;&origin=&lt;Source Address&gt;&public_key=&lt;Public Key&gt;&parsed_string=&lt;Parsed String&gt;</p>
+<table>
+<thead>
+<tr class="row-1 odd">
+	<th class="column-1"><div>Parameter</div></th><th class="column-2"><div>Description</div></th>
+</tr>
+</thead>
+<tbody class="row-hover">
+<tr class="row-2 even">
+	<td class="column-1">airroute</td><td class="column-2">App name</td>
+</tr>
+<tr class="row-3 odd">
+	<td class="column-1">destination</td><td class="column-2">Destination Address (Your Final Destination Address)</td>
+</tr>
+<tr class="row-4 even">
+	<td class="column-1">departure_date</td><td class="column-2">Departure Date (Format: YYYY-MM-DD)</td>
+</tr>
+<tr class="row-5 odd">
+	<td class="column-1">travel_class</td><td class="column-2">Various Travel Class Example: (Default: ECONOMY)</td>
+</tr>
+<tr class="row-6 even">
+	<td class="column-1">origin</td><td class="column-2">Source Address </td>
+</tr>
+<tr class="row-7 odd">
+	<td class="column-1">public_key</td><td class="column-2">Public Key</td>
+</tr>
+<tr class="row-8 even">
+	<td class="column-1">parsed_string</td><td class="column-2">Parsed String</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=</p>
+<p>&nbsp;</p>
+<p><strong>JSON response:</strong><br /></p>
+<pre>response{&quot;status&quot;: &quot;True&quot;,
+	 &quot;step3.1&quot;: &quot;Travel from Indira Gandhi International Airport to Delhi S Rohilla Station which is 16.2 km away and takes 39 mins&quot;,
+	  &quot;step3.2&quot;: &quot;Board the suitable train form the list&quot;,
+	   &quot;step3.3&quot;: &quot;Travel from Mathura Junction Station to Krishna Nagar, Mathura which is 4.3 km away and takes 15 mins&quot;,&quot;
+	    flights&quot;: [{&quot;itineraries&quot;: [{&quot;outbound&quot;: {&quot;flights&quot;: [{&quot;origin&quot;: {&quot;airport&quot;: &quot;VNS&quot;},
+	     &quot;destination&quot;: {&quot;terminal&quot;: &quot;3&quot;, &quot;airport&quot;: &quot;DEL&quot;},
+	      &quot;aircraft&quot;: &quot;319&quot;, &quot;
+	      flight_number&quot;: &quot;405&quot;, &quot;
+	      arrives_at&quot;: &quot;2016-04-03T19:15&quot;, &quot;
+	      operating_airline&quot;: &quot;AI&quot;, &quot;
+	      booking_info&quot;:  {&quot;seats_remaining&quot;: 1, &quot;travel_class&quot;: &quot;ECONOMY&quot;, &quot;booking_code&quot;: &quot;T&quot;},
+	       &quot;departs_at&quot;: &quot;2016-04-03T17:40&quot;,
+	        &quot;marketing_airline&quot;: &quot;AI&quot;}]}}],
+	         &quot;fare&quot;: {&quot;price_per_adult&quot;: {&quot;total_fare&quot;: &quot;4007.00&quot;, &quot;tax&quot;: &quot;2007.00&quot;},
+	          &quot;total_price&quot;: &quot;4007.00&quot;, &quot;
+	          restrictions&quot;: {&quot;refundable&quot;: false, &quot;change_penalties&quot;: true}}}], &quot;
+	          train_from_airport_data&quot;: {&quot;trains&quot;: {&quot;1&quot;: &quot;board_offset_days&quot;: [0, 0], &quot;fare_class&quot;: &quot;3A&quot;, &quot;number&quot;: &quot;14020&quot;, &quot;
+	          from_stations&quot;: [1021, 437], &quot;
+	          allow_book&quot;: true, &quot;
+	          duration&quot;: 10920, &quot;
+	          from_code&quot;: &quot;DEE&quot;, &quot;
+	          from&quot;: &quot;Delhi S Rohilla&quot;, &quot;
+	          to_stations&quot;: [341], &quot;
+	          arrive_offset_times&quot;: [&quot;15:22:00&quot;], &quot;
+	          stops&quot;: 1, &quot;
+	          to&quot;: &quot;Mathura Junction&quot;, &quot;
+	          arrive_offset_days&quot;: [0], &quot;
+	          depart_date&quot;: &quot;03/04/2016&quot;, &quot;
+	          fare&quot;: 551, &quot;
+	          running_days&quot;: &quot;0001001&quot;, &quot;
+	          valid_classes&quot;: &quot;3A&quot;, &quot;
+	          to_code&quot;: &quot;MTJ&quot;, &quot;
+	          preferred_class&quot;: true, &quot;
+	          train_id&quot;: 3602, &quot;
+	          board_offset_times&quot;: [&quot;12:20:00&quot;, &quot;12:50:00&quot;], &quot;
+	          depart_time&quot;: &quot;12:20&quot;, &quot;
+	          distance&quot;: 153, &quot;
+	          valid_fare&quot;: &quot;551&quot;,
+	           &quot;name&quot;: &quot;Kahanvally Express&quot;,
+	            &quot;arrive_date&quot;: &quot;03/04/2016&quot;,
+	             &quot;arrive_time&quot;: &quot;15:22&quot;},
+	              &quot;2&quot;: {&quot;board_offset_days&quot;: [0], &quot;
+	              fare_class&quot;: &quot;3A&quot;, &quot;
+	              number&quot;: &quot;09808&quot;, &quot;
+	              from_stations&quot;: [346], &quot;
+	              allow_book&quot;: true, &quot;
+	              duration&quot;: 10200, &quot;
+	              from_code&quot;: &quot;NZM&quot;, &quot;
+	              from&quot;: &quot;H Nizamuddin&quot;, &quot;
+	              to_stations&quot;: [341], &quot;
+	              arrive_offset_times&quot;: [&quot;08:05:00&quot;], &quot;
+	              stops&quot;: 0, &quot;
+	              to&quot;: &quot;Mathura Junction&quot;, &quot;
+	              arrive_offset_days&quot;: [0],
+	               &quot;depart_date&quot;: &quot;03/04/2016&quot;,
+	                &quot;fare&quot;: 601,
+	                 &quot;running_days&quot;: &quot;1111111&quot;,
+	                  &quot;valid_classes&quot;: &quot;3A&quot;,
+	                   &quot;to_code&quot;: &quot;MTJ&quot;,
+	                    &quot;preferred_class&quot;: true,
+	                     &quot;train_id&quot;: 3683,
+	                      &quot;board_offset_times&quot;: [&quot;05:15:00&quot;],
+	                       &quot;depart_time&quot;: &quot;05:15&quot;,
+	                        &quot;distance&quot;: 134,
+	                         &quot;valid_fare&quot;: &quot;601&quot;,
+	                          &quot;name&quot;: &quot;Nzm Kota Superfast Special&quot;,
+	                           &quot;arrive_date&quot;: &quot;03/04/2016&quot;,
+	                           &quot;arrive_time&quot;: &quot;08:05&quot;}}},
+	                            &quot;step2&quot;: &quot;From Lal Bahadur Shastri Airport to Indira Gandhi International Airport&quot;, &quot;step1&quot;: &quot;From IIT Varanasi to Lal Bahadur Shastri Airport travelling distance 25.0814258789 km&quot;} </pre>
+<h3>Predict City API</h3>
+<p><strong>Purpose:</strong> Predict 5 Destination Cities According To Your Journey Time Available To You. With each cities it returns some of there tourists places with their some description as well as images related to them.</p>
+<p><strong>Pattern:</strong> http://localhost:8000/predict_city/?departure_date=&lt;Departure Date&gt;&origin=&lt;Origin Address&gt;&duration=&lt;Duration&gt;&public_key=&lt;Public Key&gt;&parsed_string=&lt;Parsed String&gt;</p>
+<table>
+<thead>
+<tr class="row-1 odd">
+	<th class="column-1"><div>Parameter</div></th><th class="column-2"><div>Description</div></th>
+</tr>
+</thead>
+<tbody class="row-hover">
+<tr class="row-2 even">
+	<td class="column-1">predict_city</td><td class="column-2">App name</td>
+</tr>
+<tr class="row-3 odd">
+	<td class="column-1">departure_date</td><td class="column-2">Departure Date (Format: YYYY-MM-DD)</td>
+</tr>
+<tr class="row-4 even">
+	<td class="column-1">origin</td><td class="column-2">Source Address</td>
+</tr>
+<tr class="row-5 odd">
+	<td class="column-1">duration</td><td class="column-2">Duration</td>
+</tr>
+<tr class="row-6 even">
+	<td class="column-1">public_key</td><td class="column-2">Public Key</td>
+</tr>
+<tr class="row-7 odd">
+	<td class="column-1">parsed_string</td><td class="column-2">Parsed String</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong> 
+http://localhost:8000/predict_city/?departure_date=2016-04-03&duration=3&origin=IIT%20Varanasi&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=</p>
+<p>&nbsp;</p>
+<p><strong>JSON response:</strong><br /></p>
+<pre>response{&quot;city_results&quot;: [{&quot;
+		city&quot;: &quot;Patna&quot;, &quot;city_places&quot;:[{&quot;about&quot;: &quot;Located about 55 km from Patna, Vaishali is associated with Gautam Buddha and\u00a0Lord Mahavira. It is popluar for its Buddish structures like Relic stupa, Kutagarasala Vihara,\u00a0World Peace Pagoda.&quot;, &quot;name&quot;: &quot;Vaishali&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp- content/themes/travel2014/images/article-default-1-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built by Captain John Garstin for the British Army in 1786, the structure is 29 metre high and has walls 3.6 m wide at the base. From the\u2026&quot;, &quot;name&quot;: &quot;Golghar&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-2-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built in 1917 in Mughal and Rajput style of architecture, the museum houses several metal and stone sculptures of the Mauryan and Gupta era. One also get to\u2026&quot;, &quot;name&quot;: &quot;Patna Museum&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Valmiki\u00a0National Park\u00a0is among the most prominent\u00a0tiger\u00a0reserves in India. Located near the Indo-Nepal border in West Champaran district of\u00a0Bihar, the tiger reserve is spread over an area of about\u2026&quot;, &quot;name&quot;: &quot;Valmiki Tiger Reserve&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built by Maharaja Ranjit Singh in the memory of Guru Gobind Singh. The gurudwara is one of the four sacred shrines of the Sikhs and is considered to\u2026&quot;, &quot;name&quot;: &quot;Har Mandir Takht&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp- content/themes/travel2014/images/article-default-4-260x150.jpg&quot;}]},
+		  {&quot;city&quot;: &quot;Lucknow&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Built by Nawab Asaf-ud-Daula in 1784, it is also known as the Asafi Imambara. It is believed to have been built to generate employment during the famine of\u2026&quot;, &quot;name&quot;: &quot;Bara Imambara&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/uploads/bara-imambara-preset1.jpg&quot;}, {&quot;about&quot;: &quot;The Rumi Darwaza is a gateway in Lucknow built by Nawab Asaf-Ud-Dowlah in 1784. The 60-feet structure is modelled after the Sublime Porte (Bab-iH\u00fcmayun) in Istanbul and is\u2026&quot;, &quot;name&quot;: &quot;Rumi Darwaza&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/uploads/rumi-darwaza-preset1.jpg&quot;}, {&quot;about&quot;: &quot;This 67-metre clock tower is the highest in the country. Constructed in 1887, the Hussainabad Clock Tower is one of the finest examples of British Architecture in India.\u2026&quot;, &quot;name&quot;: &quot;Husainabad Clock Tower&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-4-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Capital of ancient Kosala kingdom, Sravasti is located on the banks of Rapti river in\u00a0Uttar Pradesh. It is one of the sacred Buddhist places and popular for its\u2026&quot;, &quot;name&quot;: &quot;Sravasti&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/K0qm1s.jpg&quot;}, {&quot;about&quot;: &quot;Located near the Indo-Nepal border, Dudhwa\u00a0National Park\u00a0in\u00a0Uttar Pradesh\u00a0is a major wildlife conservation site and an important reserve under the Project Tiger project for the conservation of Indian tigers.\u2026&quot;, &quot;name&quot;: &quot;Dudhwa National Park&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post- thumbnail/kmEKO1.jpg&quot;}]},
+		   {&quot;city&quot;: &quot;Kanpur&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Allen forest zoo, also known as the Kanpur zoo, is one of the few zoos in India created in a natural forest. It was the imagination of Sir\u2026&quot;, &quot;name&quot;: &quot;Allen Forest Zoo&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/LF0FeP.jpg&quot;}, {&quot;about&quot;: &quot;Phool Bagh or Ganesh Vidyarthi Udyan is an urban city park in Kanpur. It is located in the central area of Kanpur District and is close to Kanpur\u2026&quot;, &quot;name&quot;: &quot;Phool Bagh&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/RTWm02.jpg&quot;}, {&quot;about&quot;: &quot;Situated on the banks of River Ganges, Jajmau is an industrial suburb of Kanpur. The excavations conducted here by the Archaeological Survey of India suggest that it dates\u2026&quot;, &quot;name&quot;: &quot;Jajmau&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Abode of Lord Brahma, Bithoor is a located on the banks of Ganga River in Kanpur district of\u00a0Uttar Pradesh. The town is renowned for its\u00a0religious\u00a0and\u00a0historical\u00a0significance. It was one\u2026&quot;, &quot;name&quot;: &quot;Bithoor&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/fu4j7S.jpg&quot;}]},
+		    {&quot;city&quot;: &quot;Gwalior&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Padmavati Pawaya was an ancient city mentioned in several classic Sanskrit texts. Pawaya is identified with ancient Padmavati by many scholars. Bhavabhuti describes the city with tall mansions\u2026&quot;, &quot;name&quot;: &quot;Pawaya&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/Havi1H.jpg&quot;}, {&quot;about&quot;: &quot;Kala Vithika is a popular museum in Gwalior. It is known for ancient paintings, instruments, and portraits displaying the rich history and culture of Madhya Pradesh. The museums\u2026&quot;, &quot;name&quot;: &quot;Kala Vithika&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-3-260x150.jpg&quot;}, {&quot;about&quot;: &quot;The Scindia Museum is part of the Jai Vilas Palace, built by Maharaja Jayajirao in 1874 using prisoners from the Gwalior fort. The convicts were then rewarded with\u2026&quot;, &quot;name&quot;: &quot;Scindia Museum&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/Vexeep.jpg&quot;}, {&quot;about&quot;: &quot;Situated on a sandstone hill, it has been the administrative headquarters of the Tomars and witness to the rule of several dynasties. During the Revolt of 1857, it\u2026&quot;, &quot;name&quot;: &quot;Gwalior Fort&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/uploads/gwalior-fort-preset1.jpg&quot;}, {&quot;about&quot;: &quot;Saas or Sas Bahu Temple or Sahastrabahu Temple is located to the east of Gwalior fort. This temple was built in 1092 by King Mahipala of the Kachchhapaghata\u2026&quot;, &quot;name&quot;: &quot;Saas Bahu Temple&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/3E1ueh.jpg&quot;}, {&quot;about&quot;: &quot;Jai Vilas Mahal was established in 1874 by Jayajirao Scindia, the Maharaja of Gwalior, and it is still the residence of his descendants. The palace has 400 rooms,\u2026&quot;, &quot;name&quot;: &quot;Jai Vilas Mahal&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/gykFwC.jpg&quot;}, {&quot;about&quot;: &quot;A town of strategic importance in medieval times, Chanderi in\u00a0Madhya Pradesh\u00a0is known for its handloom saris. Set amidst the Vindhyachal range, Chanderi in Ashok Nagar district abounds with\u2026&quot;, &quot;name&quot;: &quot;Chanderi&quot;, &quot;img&quot;:  &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/PLJgYu.jpg&quot;}, {&quot;about&quot;: &quot;Spread over an area of 355 sq km, Madhav\u00a0National Park\u00a0is located in\u00a0Shivpuri \u00a0district in\u00a0Madhya Pradesh. The park is popular for its monuments associated with the\u00a0Gwalior\u00a0state as well as its\u2026&quot;, &quot;name&quot;: &quot;Madhav National Park&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/eIK2XS.jpg&quot;}]},
+		     {&quot;city&quot;: &quot;Nalanda&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Spread over 14 hectares, the university building was built in the fifth century. Built with red bricks in the Kushana architectural style, the university building was three to\u2026&quot;, &quot;name&quot;: &quot;Nalanda University Ruins&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-3-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Established in 1971, the museum houses relics unearthed from the Nalanda University. The museum is divided into four main galleries housing 13463 relics\u00a0that have been excavated from 349\u2026&quot;, &quot;name&quot;: &quot;Nalanda Archaeological Museum&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built in the memory of Chinese monk and traveller, Hieun\u00a0Tsang, the memorial hall houses writings of Hieun Tsang that provides more information about ancient India. It is said\u2026&quot;, &quot;name&quot;: &quot;Hieun Tsang Memorial Hall&quot;, &quot;img&quot;:&quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}]}]}</pre>
+<h3>Predict City With Journey API</h3>
+<p><strong>Purpose:</strong> This API predicts 2 cities along with complete journey from your location to the final destination. This api uses above api predict_city topredict two cities then it uses rail api and air route api to plan your journey according to your choice of air route or rail route.</p>
+<p><strong>Pattern:</strong> http://localhost:8000/predict_city_with_journey/?departure_date=&lt;Departure Date&gt;&origin=&lt;Source Address&gt;&duration=&lt;Duration&gt;&public_key=&lt;Public Key&gt;&parsed_string=&lt;Parsed String&gt;</p>
+<table>
+<thead>
+<tr class="row-1 odd">
+	<th><div>Parameter</div></th><th><div>Description</div></th>
+</tr>
+</thead>
+<tbody class="row-hover">
+<tr class="row-2 even">
+	<td class="column-1">predict_city_with_journey</td><td class="column-2">App name</td>
+</tr>
+<tr class="row-3 odd">
+	<td class="column-1">departure_date</td><td class="column-2">Departure Date (Format: YYYY-MM-DD)</td>
+</tr>
+<tr class="row-4 even">
+	<td class="column-1">origin</td><td class="column-2">Source Address</td>
+</tr>
+<tr class="row-5 odd">
+	<td class="column-1">duration</td><td class="column-2">Duration</td>
+</tr>
+<tr class="row-6 even">
+	<td class="column-1">public_key</td><td class="column-2">Public Key</td>
+</tr>
+<tr class="row-7 odd">
+	<td class="column-1">parsed_string</td><td class="column-2">Parsed String</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong>http://localhost:8000/predict_city_with_journey/?departure_date=2016-04-03&duration=3&origin=IIT%20Varanasi&spublic_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=
+</p>
+<p>&nbsp;</p>
+<p><strong>JSON response:</strong><br /></p>
+<pre>response{&quot;city_results&quot;: [{&quot;city&quot;: &quot;Patna&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Located about 55 km from Patna, Vaishali is associated with Gautam Buddha and\u00a0Lord Mahavira. It is popluar for its Buddish structures like Relic stupa, Kutagarasala Vihara,\u00a0World Peace Pagoda.&quot;, &quot;name&quot;: &quot;Vaishali&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-1-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built by Captain John Garstin for the British Army in 1786, the structure is 29 metre high and has walls 3.6 m wide at the base. From the\u2026&quot;, &quot;name&quot;: &quot;Golghar&quot;, &quot;img&quot;:  &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-2-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built in 1917 in Mughal and Rajput style of architecture, the museum houses several metal and stone sculptures of the Mauryan and Gupta era. One also get to\u2026&quot;, &quot;name&quot;: &quot;Patna Museum&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp- content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Valmiki\u00a0National Park\u00a0is among the most prominent\u00a0tiger\u00a0reserves in India. Located near the Indo-Nepal border in West Champaran district of\u00a0Bihar, the tiger reserve is spread over an area of about\u2026&quot;, &quot;name&quot;: &quot;Valmiki Tiger Reserve&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-5-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Built by Maharaja Ranjit Singh in the memory of Guru Gobind Singh. The gurudwara is one of the four sacred shrines of the Sikhs and is considered to\u2026&quot;, &quot;name&quot;: &quot;Har Mandir Takht&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp- content/themes/travel2014/images/article-default-4-260x150.jpg&quot;}], &quot;journey_details&quot;: {&quot;my_dict&quot;: {&quot;dist1&quot;: &quot;12.0 km&quot;, &quot;time1&quot;: &quot;32 mins&quot;, &quot;time2&quot;: &quot;5 mins&quot;, &quot;dist2&quot;: &quot;1.5 km&quot;},
+	 &quot;from&quot;: &quot;Varanasi&quot;, &quot;to&quot;: &quot;Patna&quot;,
+	  &quot;step3&quot;: &quot;Travel from Patna Junction Station to Patna which is 1.5 km away and takes 5 mins&quot;, &quot;step2&quot;: &quot;Board the suitable train form the list&quot;, &quot;step1&quot;: &quot;Travel from IIT Varanasi to Varanasi Junction Station which is 12.0 km away and takes 32 mins&quot;, &quot;not_found&quot;: 0, &quot;train_data&quot;: {&quot;trains&quot;: {&quot;1&quot;: {&quot;board_offset_days&quot;: [0], &quot;fare_class&quot;: &quot;3A&quot;, &quot;number&quot;: &quot;25652&quot;, &quot;from_stations&quot;: [205], &quot;allow_book&quot;: true, &quot;duration&quot;: 15600, &quot;from_code&quot;: &quot;BSB&quot;, &quot;from&quot;: &quot;Varanasi Junction&quot;, &quot;to_stations&quot;: [726], &quot;arrive_offset_times&quot;: [&quot;01:35:00&quot;], &quot;stops&quot;: 4, &quot;to&quot;: &quot;Patna Junction&quot;, &quot;arrive_offset_days&quot;: [0], &quot;depart_date&quot;: &quot;03/04/2016&quot;, &quot;fare&quot;: 551, &quot;running_days&quot;: &quot;0000001&quot;, &quot;valid_classes&quot;: &quot;3A&quot;, &quot;to_code&quot;: &quot;PNBE&quot;, &quot;preferred_class&quot;: true, &quot;train_id&quot;: 4107, &quot;board_offset_times&quot;: [&quot;21:15:00&quot;], &quot;depart_time&quot;: &quot;21:15&quot;, &quot;distance&quot;: 229, &quot;valid_fare&quot;: &quot;551&quot;, &quot;name&quot;: &quot;Bsb Ghy&quot;, &quot;arrive_date&quot;: &quot;04/04/2016&quot;, &quot;arrive_time&quot;: &quot;01:35&quot;}, &quot;2&quot;: {&quot;board_offset_days&quot;: [0], &quot;fare_class&quot;: &quot;3A&quot;, &quot;number&quot;: &quot;93240&quot;, &quot;from_stations&quot;: [205], &quot;allow_book&quot;: true, &quot;duration&quot;: 17100, &quot;from_code&quot;: &quot;BSB&quot;, &quot;from&quot;: &quot;Varanasi Junction&quot;, &quot;to_stations&quot;: [726], &quot;arrive_offset_times&quot;: [&quot;17:20:00&quot;], &quot;stops&quot;: 4, &quot;to&quot;: &quot;Patna Junction&quot;, &quot;arrive_offset_days&quot;: [0], &quot;depart_date&quot;: &quot;03/04/2016&quot;, &quot;fare&quot;: 551, &quot;running_days&quot;: &quot;1110010&quot;, &quot;valid_classes&quot;: &quot;3A&quot;, &quot;to_code&quot;: &quot;PNBE&quot;, &quot;preferred_class&quot;: true, &quot;train_id&quot;: 4393, &quot;board_offset_times&quot;: [&quot;12:35:00&quot;], &quot;depart_time&quot;: &quot;12:35&quot;, &quot;distance&quot;: 229, &quot;valid_fare&quot;: &quot;551&quot;, &quot;name&quot;: &quot;Kota Pnbe Express&quot;, &quot;arrive_date&quot;: &quot;03/04/2016&quot;, &quot;arrive_time&quot;: &quot;17:20&quot;}}}}},
+	 {&quot;city&quot;: &quot;Lucknow&quot;, &quot;city_places&quot;: [{&quot;about&quot;: &quot;Built by Nawab Asaf-ud-Daula in 1784, it is also known as the Asafi Imambara. It is believed to have been built to generate employment during the famine of\u2026&quot;, &quot;name&quot;: &quot;Bara Imambara&quot;, &quot;img&quot;:  &quot;http://st1.travel.india.com/wp-content/uploads/bara-imambara-preset1.jpg&quot;}, {&quot;about&quot;: &quot;The Rumi Darwaza is a gateway in Lucknow built by Nawab Asaf-Ud-Dowlah in 1784. The 60-feet structure is modelled after the Sublime Porte (Bab-iH\u00fcmayun) in Istanbul and is\u2026&quot;, &quot;name&quot;: &quot;Rumi Darwaza&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/uploads/rumi-darwaza-preset1.jpg&quot;}, {&quot;about&quot;: &quot;This 67-metre clock tower is the highest in the country. Constructed in 1887, the Hussainabad Clock Tower is one of the finest examples of British Architecture in India.\u2026&quot;, &quot;name&quot;: &quot;Husainabad Clock Tower&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/themes/travel2014/images/article-default-4-260x150.jpg&quot;}, {&quot;about&quot;: &quot;Capital of ancient Kosala kingdom, Sravasti is located on the banks of Rapti river in\u00a0Uttar Pradesh. It is one of the sacred Buddhist places and popular for its\u2026&quot;, &quot;name&quot;: &quot;Sravasti&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/K0qm1s.jpg&quot;}, {&quot;about&quot;: &quot;Located near the Indo-Nepal border, Dudhwa\u00a0National Park\u00a0in\u00a0Uttar Pradesh\u00a0is a major wildlife conservation site and an important reserve under the Project Tiger project for the conservation of Indian tigers.\u2026&quot;, &quot;name&quot;: &quot;Dudhwa National Park&quot;, &quot;img&quot;: &quot;http://st1.travel.india.com/wp-content/wp-post-thumbnail/kmEKO1.jpg&quot;}], &quot;journey_details&quot;: {&quot;my_dict&quot;: {&quot;dist1&quot;: &quot;12.0 km&quot;, &quot;time1&quot;: &quot;32 mins&quot;, &quot;time2&quot;: &quot;9 mins&quot;, &quot;dist2&quot;: &quot;3.0 km&quot;},
+	  &quot;from&quot;: &quot;Varanasi&quot;, &quot;to&quot;: &quot;Lucknow&quot;,
+	   &quot;step3&quot;: &quot;Travel from Lucknow Nr Station to Lucknow which is 3.0 km away and takes 9 mins&quot;, &quot;step2&quot;: &quot;Board the suitable train form the list&quot;, &quot;step1&quot;: &quot;Travel from IIT Varanasi to Varanasi Junction Station which is 12.0 km away and takes 32 mins&quot;, &quot;not_found&quot;: 0, &quot;train_data&quot;: {&quot;trains&quot;: {&quot;1&quot;: {&quot;board_offset_days&quot;: [0], &quot;fare_class&quot;: &quot;3A&quot;, &quot;number&quot;: &quot;03291&quot;, &quot;from_stations&quot;: [205], &quot;allow_book&quot;: true, &quot;duration&quot;: 24300, &quot;from_code&quot;: &quot;BSB&quot;, &quot;from&quot;: &quot;Varanasi Junction&quot;, &quot;to_stations&quot;: [120], &quot;arrive_offset_times&quot;: [&quot;04:00:00&quot;], &quot;stops&quot;: 2, &quot;to&quot;: &quot;Lucknow Nr&quot;, &quot;arrive_offset_days&quot;: [0], &quot;depart_date&quot;: &quot;03/04/2016&quot;, &quot;fare&quot;: 606, &quot;running_days&quot;: &quot;0010011&quot;, &quot;valid_classes&quot;: &quot;3A&quot;, &quot;to_code&quot;: &quot;LKO&quot;, &quot;preferred_class&quot;: true, &quot;train_id&quot;: 3524, &quot;board_offset_times&quot;: [&quot;21:15:00&quot;], &quot;depart_time&quot;: &quot;21:15&quot;, &quot;distance&quot;: 301, &quot;valid_fare&quot;: &quot;606&quot;, &quot;name&quot;: &quot;Pnbe Anvt Special&quot;, &quot;arrive_date&quot;: &quot;04/04/2016&quot;, &quot;arrive_time&quot;: &quot;04:00&quot;}, &quot;2&quot;: {&quot;board_offset_days&quot;: [0], &quot;fare_class&quot;: &quot;3A&quot;, &quot;number&quot;: &quot;03415&quot;, &quot;from_stations&quot;: [205], &quot;allow_book&quot;: true, &quot;duration&quot;: 20220, &quot;from_code&quot;: &quot;BSB&quot;, &quot;from&quot;: &quot;Varanasi Junction&quot;, &quot;to_stations&quot;: [120], &quot;arrive_offset_times&quot;: [&quot;05:35:00&quot;], &quot;stops&quot;: 0, &quot;to&quot;: &quot;Lucknow Nr&quot;, &quot;arrive_offset_days&quot;: [0], &quot;depart_date&quot;: &quot;03/04/2016&quot;, &quot;fare&quot;: 551, &quot;running_days&quot;: &quot;0000001&quot;, &quot;valid_classes&quot;: &quot;3A&quot;, &quot;to_code&quot;: &quot;LKO&quot;, &quot;preferred_class&quot;: true, &quot;train_id&quot;: 4297, &quot;board_offset_times&quot;: [&quot;23:58:00&quot;], &quot;depart_time&quot;: &quot;23:58&quot;, &quot;distance&quot;: 283, &quot;valid_fare&quot;: &quot;551&quot;, &quot;name&quot;: &quot;Sbg Anvt Special&quot;, &quot;arrive_date&quot;: &quot;04/04/2016&quot;, &quot;arrive_time&quot;: &quot;05:35&quot;}}}}}]}</pre>
+</html>

@@ -136,6 +136,19 @@ def rail_route(request):
                 source_city=frm
     except requests.exceptions.RequestException as e:
         print e
+
+    # try:
+    #     frm_loc_ob = requests.get("http://api.railwayapi.com/name_to_code/"+source_city+"/apikey/"+railway_api_key+'/')
+    #     if frm_loc_ob.status_code == requests.codes.ok:
+    #         frm_loc_json=frm_loc_ob.json()
+    #         if frm_loc_json['response_code']==200:
+    #             stations=frm_loc_json['stations']
+    #             for station in stations:
+                    
+            
+    # except requests.exceptions.RequestException as e:
+    #     print e
+
     print "first part done"
     try:
         payload={'address':to,'key':google_geocoding_api_key}
@@ -853,7 +866,7 @@ def index(request):
 
 def docs(request):
     context = {}
-    return render(request, 'docs.html', context)
+    return render(request, 'Documentation.html', context)
 
 def faqs(request):
     context = {}
