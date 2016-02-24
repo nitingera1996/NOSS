@@ -9,13 +9,13 @@ class UserDetails(models.Model):
 		return self.user.email
 
 class Tags(models.Model):
-	name=models.CharField(max_length="15")
+	name=models.CharField(max_length=15)
 
 	def __unicode__(self):
 		return self.name
 		
 class City(models.Model):
-	name = models.CharField(max_length="100")
+	name = models.CharField(max_length=100)
 	lat = models.CharField(max_length=8,default="0.00")
 	lng = models.CharField(max_length=8,default="0.00")
 	tags = models.ManyToManyField(Tags)
