@@ -97,6 +97,20 @@ DATABASES = {
     }
 }
 
+if 'ON_HEROKU' in os.environ:
+    DEBUG = False
+    import dj_database_url
+    DATABASES['default'] =  dj_database_url.config()
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': os.path.join(BASE_DIR, 'my_cache_table'),
+    }
+}
+
+
 # Update database configuration with $DATABASE_URL.
 # import dj_database_url
 # db_from_env = dj_database_url.config(conn_max_age=500)
