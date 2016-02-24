@@ -833,7 +833,7 @@ def predict_city_with_journey(request):
                 city_result['journey_details']='We could not find any conventional route to '+city_result['city']+'. Soon we are going to launch our own special means! ;)'
             city_result['city_places']=city_result_places
             city_results.append(city_result)
-        if count >= 2:
+        if count >= 5:
             break
 
             # print city
