@@ -12,12 +12,15 @@ import datetime
 import ast
 from ratelimit.decorators import ratelimit
 import math
+from django.core.cache import cache
+import requests_cache
+requests_cache.install_cache()
 
 google_geocoding_api_key="AIzaSyAVPebYRc6oQkB9gT0f-z63IStnR02bQ34"
 amadeus_api_key="oJS13442zS4sbBnZVeGa6Y6Y38BzmPyC"
 railway_api_key="jruwt3809"
 google_matrix_api_key="AIzaSyBqLD2_EXtqKWi8WPWEKiELVNrINuTa91s"
-
+CACHE_TIMEOUT=60
 rate = '100/h'
 
 def generate_key():
@@ -29,21 +32,29 @@ def openvpn_password(request):
     # a=request.GET.get('q', '')
     # print a
     response_dict={}
-    try:
-        r  = requests.get("http://www.vpnbook.com/freevpn")
-        data = r.text
-        soup = BeautifulSoup(data,'html.parser')
-        tags=soup.find_all('li')
-        for t in tags:
-            l=str(t.get_text())
-            if l.startswith("Password"):
-                now_password=l.split(" ",1)[-1]
-                response_dict['password']=now_password
-                response_dict['status']="True"
-    except requests.exceptions.RequestException as e:
-        print e
-        response_dict['status']="False"
-        response_dict['message']="Check ur internet connection"
+    key="http://www.vpnbook.com/freevpn"
+    value = cache.get(key)
+    if value is None:
+        try:
+            r  = requests.get("http://www.vpnbook.com/freevpn")
+            data = r.text
+            soup = BeautifulSoup(data,'html.parser')
+            tags=soup.find_all('li')
+            for t in tags:
+                l=str(t.get_text())
+                if l.startswith("Password"):
+                    now_password=l.split(" ",1)[-1]
+                    response_dict['password']=now_password
+                    response_dict['status']="True"
+        except requests.exceptions.RequestException as e:
+            # print e
+            response_dict['status']="False"
+            response_dict['message']="Check ur internet connection"
+        value = now_password 
+        cache.set(key, value, CACHE_TIMEOUT)
+    else:
+        response_dict['password']=value
+        response_dict['status']="True"
     return HttpResponse(json.dumps(response_dict), content_type='application/javascript')
 
 @login_required(login_url='/account/login')
@@ -60,16 +71,16 @@ def profile(request):
 def rail_route(request):
     response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
     frm=request.GET.get('origin', '')
-    if frm==None:
+    if frm=='':
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
     to=request.GET.get('destination', '')
-    if to==None:
+    if to=='':
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
     date=request.GET.get('departure_date', '')
     if frm==to:
         return HttpResponse(json.dumps({'status':"False",'error':"no railroute possible"}),content_type='application/javascript')
     if valid_date(date)==False:
-        if date:
+        if date!="":
             return HttpResponse(json.dumps({'status':"False",'error':"plz enter date in yyyy-mm-dd format"}),content_type='application/javascript')
         else:
             return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
