@@ -103,6 +103,12 @@ if 'ON_HEROKU' in os.environ:
     DATABASES['default'] =  dj_database_url.config()
 
 
+if 'DEBUG' in os.environ:
+    if os.environ['DEBUG']=="TRUE":
+        DEBUG=True
+    else:
+        DEBUG=False
+        
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
