@@ -12,9 +12,13 @@ import datetime
 import ast
 from ratelimit.decorators import ratelimit
 import math
-from django.core.cache import cache
-import requests_cache
-requests_cache.install_cache()
+import os
+if 'ON_HEROKU' in os.environ:
+    pass
+else:
+    from django.core.cache import cache
+    import requests_cache
+    requests_cache.install_cache()
 
 google_geocoding_api_key="AIzaSyAVPebYRc6oQkB9gT0f-z63IStnR02bQ34"
 amadeus_api_key="oJS13442zS4sbBnZVeGa6Y6Y38BzmPyC"
