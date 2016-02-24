@@ -12,3 +12,5 @@ requests-oauthlib==0.6.1
 whitenoise==2.0.6
 wsgiref==0.1.2
 requests-cache==0.4.10
+psycopg2==2.6
+SQLAlchemy==1.0.4
