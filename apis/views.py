@@ -121,7 +121,7 @@ def rail_route(request):
             return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination_date"}),content_type='application/javascript')
     date=date[8:10]+'-'+date[5:7]+'-'+date[:4]
     print frm,to,date
-    try:
+    try:                        #From here, we find out the name of the origin city from the address to be given input to railway API
         payload={'address':frm,'key':google_geocoding_api_key}
         frm_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
         if frm_loc_ob.status_code == requests.codes.ok:
@@ -136,8 +136,7 @@ def rail_route(request):
                 source_city=frm
     except requests.exceptions.RequestException as e:
         print e
-    print "first part done"
-    try:
+    try:                        #From here, we find out the name of the destination city from the address to be given input to railway API
         payload={'address':to,'key':google_geocoding_api_key}
         to_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
         if to_loc_ob.status_code == requests.codes.ok:
@@ -152,13 +151,15 @@ def rail_route(request):
                 dest_city=to
     except requests.exceptions.RequestException as e:
         print e
-    print "second part done"
     travel_class=request.GET.get('travel_class', '')
-    if travel_class==None:
+    if travel_class=='':
         travel_class="3A"
+    if travel_class!='3A' and travel_class!='2A' and travel_class!='1A' and travel_class!='SS':
+        return HttpResponse(json.dumps({'status':"False",'error':"Please choose a proper railway class."}),content_type='application/javascript')    
     response_dict['from']=source_city
     response_dict['to']=dest_city
-    try:
+    print source_city,dest_city
+    try:                                #Here we find available trains between stations
         payload={'from_city':source_city,'to_city':dest_city,'class':travel_class,'date':date,'adults':1,'children':0,'male_seniors':0,'female_seniors':0}
         path_html = requests.get('http://www.cleartrip.com/trains/results',params=payload)
         path_html =path_html.text
@@ -172,9 +173,14 @@ def rail_route(request):
         train_data = train_data[:(end_pos)]+'}'
         train_data=str(train_data)
         train_data=train_data.replace("true","True")
+        train_data=train_data.replace("false","False")
+        print train_data
         end_pos =train_data.find(',"3":{"distance')
         if end_pos>0:
             train_data=train_data[:end_pos]+'}}'
+        print
+        print end_pos
+        print train_data
         train_data=ast.literal_eval(train_data)
         response_dict['train_data']=train_data       
         frm_stn_name=train_data["trains"]["1"]["from"]+" Station"
@@ -201,13 +207,15 @@ def rail_route(request):
         response_dict['step1']="Travel from "+ frm +" to " + frm_stn_name +" which is "+ my_dict['dist1']+" away and takes "+my_dict['time1']
         response_dict['step2']="Board the suitable train form the list"
         response_dict['step3']="Travel from "+ to_stn_name +" to " + to + " which is "+ my_dict['dist2']+" away and takes "+my_dict['time2']
+        response_dict['status']=True
     except requests.exceptions.RequestException as e:
         print e
     return HttpResponse(json.dumps(response_dict),content_type='application/javascript')
             
-@ratelimit(key='ip', rate=rate, block=True)
-def rail_route_to_airport(frm,to,date):
-    response_dict={} #
+
+
+def rail_route_to_airport(frm,to,date,travel_class):            ##this function gives rail route to or from airport if airport is far away                  
+    response_dict={} 
     date=date[8:10]+'-'+date[5:7]+'-'+date[:4]
     print frm,to,date
     try:
@@ -242,7 +250,8 @@ def rail_route_to_airport(frm,to,date):
     except requests.exceptions.RequestException as e:
         print e
     print "second part done"
-    travel_class="3A"
+    if travel_class=="":
+        travel_class="3A"
     response_dict['from']=source_city
     response_dict['to']=dest_city
     try:
@@ -260,6 +269,7 @@ def rail_route_to_airport(frm,to,date):
         train_data = train_data[:(end_pos)]+'}'
         train_data=str(train_data)
         train_data=train_data.replace("true","True")
+        train_data=train_data.replace("false","False")
         end_pos =train_data.find(',"3":{"distance')
         if end_pos>0:
             train_data=train_data[:end_pos]+'}}'
@@ -294,6 +304,7 @@ def rail_route_to_airport(frm,to,date):
     except requests.exceptions.RequestException as e:
         print e
     return response_dict
+
 
 @ratelimit(key='ip', rate=rate, block=True)
 def air_route(request):
@@ -336,7 +347,9 @@ def air_route(request):
     travel_class=request.GET.get('travel_class', '')
     if travel_class=="":
         travel_class="ECONOMY"
-    # print frm,to,date,travel_class
+    if travel_class!="ECONOMY" and travel_class!="BUSINESS" and travel_class!="FIRST" and travel_class!="PREMIUM_ECONOMY":
+        return HttpResponse(json.dumps({'status':"False",'error':"Please select proper class"}),content_type='application/javascript')    
+    print frm,to,date,travel_class
     try:
         payload={'address':frm,'key':google_geocoding_api_key}
         frm_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
@@ -807,7 +820,7 @@ def predict_city_with_journey(request):
                 city_result['journey_details']='We could not find any conventional route to '+city_result['city']+'. Soon we are going to launch our own special means! ;)'
             city_result['city_places']=city_result_places
             city_results.append(city_result)
-        if count >= 2:
+        if count >= 3:
             break
 
             # print city

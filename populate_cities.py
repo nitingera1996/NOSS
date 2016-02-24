@@ -99,9 +99,13 @@ for t in tags:
 						soup = BeautifulSoup(data)
 						c.rating=len(soup.prettify())
 					except:
+						print "Passed "+frm
 						pass
 					c.save()
-				except:
+				except Exception as e:
+					print e
+					print "passed everything"
 					pass
 		except requests.exceptions.RequestException as e:
+			print "done nothing"
 			pass
