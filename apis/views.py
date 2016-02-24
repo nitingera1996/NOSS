@@ -12,9 +12,18 @@ import datetime
 import ast
 from ratelimit.decorators import ratelimit
 import math
-from django.core.cache import cache
-import requests_cache
-requests_cache.install_cache()
+import os
+import hashlib
+import hmac
+import base64
+
+
+if 'ON_HEROKU' in os.environ:
+    pass
+else:
+    from django.core.cache import cache
+    import requests_cache
+    requests_cache.install_cache()
 
 google_geocoding_api_key="AIzaSyAVPebYRc6oQkB9gT0f-z63IStnR02bQ34"
 amadeus_api_key="oJS13442zS4sbBnZVeGa6Y6Y38BzmPyC"
@@ -27,34 +36,41 @@ def generate_key():
     s = string.letters + string.digits
     return ''.join(random.sample(s, 50))
 
+def provide_hash(message,key):
+    message = bytes(message).encode('utf-8')
+    secret = bytes(key).encode('utf-8')
+
+    signature = base64.b64encode(hmac.new(secret, message, digestmod=hashlib.sha256).digest())
+    return signature
+
 @ratelimit(key='ip', rate=rate, block=True)
 def openvpn_password(request):
     # a=request.GET.get('q', '')
     # print a
     response_dict={}
-    key="http://www.vpnbook.com/freevpn"
-    value = cache.get(key)
-    if value is None:
-        try:
-            r  = requests.get("http://www.vpnbook.com/freevpn")
-            data = r.text
-            soup = BeautifulSoup(data,'html.parser')
-            tags=soup.find_all('li')
-            for t in tags:
-                l=str(t.get_text())
-                if l.startswith("Password"):
-                    now_password=l.split(" ",1)[-1]
-                    response_dict['password']=now_password
-                    response_dict['status']="True"
-        except requests.exceptions.RequestException as e:
-            # print e
-            response_dict['status']="False"
-            response_dict['message']="Check ur internet connection"
-        value = now_password 
-        cache.set(key, value, CACHE_TIMEOUT)
-    else:
-        response_dict['password']=value
-        response_dict['status']="True"
+    # k#ey="http://www.vpnbook.com/freevpn"
+    #value = cache.get(key)
+    # if value is None:
+    try:
+        r  = requests.get("http://www.vpnbook.com/freevpn")
+        data = r.text
+        soup = BeautifulSoup(data,'html.parser')
+        tags=soup.find_all('li')
+        for t in tags:
+            l=str(t.get_text())
+            if l.startswith("Password"):
+                now_password=l.split(" ",1)[-1]
+                response_dict['password']=now_password
+                response_dict['status']="True"
+    except requests.exceptions.RequestException as e:
+        # print e
+        response_dict['status']="False"
+        response_dict['message']="Check ur internet connection"
+        # value = now_password 
+        # cache.set(key, value, CACHE_TIMEOUT)
+    # else:
+    #     response_dict['password']=value
+    #     response_dict['status']="True"
     return HttpResponse(json.dumps(response_dict), content_type='application/javascript')
 
 @login_required(login_url='/account/login')
@@ -63,16 +79,35 @@ def profile(request):
     try:
         ud = UserDetails.objects.get(user=request.user)
     except Exception as e:
-        ud = UserDetails.objects.create(user=request.user, key=generate_key())
+        ud = UserDetails.objects.create(user=request.user, private_key=generate_key(),public_key=generate_key())
     context['ud'] = ud
     return render(request, "profile.html", context)
 
 @ratelimit(key='ip', rate=rate, block=True)
 def rail_route(request):
-    response_dict={} #example request=http://localhost:8000/railroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
-    frm=request.GET.get('origin', '')
-    if frm=='':
-        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+    public_key=request.GET.get('public_key', '') #example request=http://localhost:8000/railroute/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=
+    # print "public_key",public_key
+    if public_key=='':
+        return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not provided"}),content_type='application/javascript')
+    else:
+        found=False
+        frm=request.GET.get('origin', '')
+        if frm=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"origin not specfied"}),content_type='application/javascript')
+        parsed_string=request.GET.get('parsed_string','')
+        if parsed_string=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"parsed_string not provided"}),content_type='application/javascript')
+        for user in UserDetails.objects.all():
+            if user.public_key==public_key:
+                u_private_key=user.private_key
+                expected_parsed_string=provide_hash(frm,u_private_key)
+                if expected_parsed_string!=parsed_string:
+                    return HttpResponse(json.dumps({'status':"False",'error':"wrong parsed_string given"}),content_type='application/javascript')
+                found=True
+                break
+        if found==False:
+            return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not found"}),content_type='application/javascript')
+    response_dict={}
     to=request.GET.get('destination', '')
     if to=='':
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
@@ -270,13 +305,33 @@ def rail_route_to_airport(frm,to,date,travel_class):            ##this function 
         print e
     return response_dict
 
+
 @ratelimit(key='ip', rate=rate, block=True)
 def air_route(request):
+    public_key=request.GET.get('public_key', '') #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=
+    # print "public_key",public_key
+    if public_key=='':
+        return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not provided"}),content_type='application/javascript')
+    else:
+        found=False
+        frm=request.GET.get('origin', '')
+        if frm=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"origin not specfied"}),content_type='application/javascript')
+        parsed_string=request.GET.get('parsed_string','')
+        if parsed_string=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"parsed_string not provided"}),content_type='application/javascript')
+        for user in UserDetails.objects.all():
+            if user.public_key==public_key:
+                u_private_key=user.private_key
+                expected_parsed_string=provide_hash(frm,u_private_key)
+                if expected_parsed_string!=parsed_string:
+                    return HttpResponse(json.dumps({'status':"False",'error':"wrong parsed_string given"}),content_type='application/javascript')
+                found=True
+                break
+        if found==False:
+            return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not found"}),content_type='application/javascript')
     flag1,flag2=[0,0]
-    response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
-    frm=request.GET.get('origin', '')
-    if frm=="":
-        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+    response_dict={} 
     to=request.GET.get('destination', '')
     if to=="":
         return HttpResponse(json.dumps({'status':"False",'error':"plz specify the destination"}),content_type='application/javascript')
@@ -396,8 +451,97 @@ def air_route(request):
             return HttpResponse(json.dumps({'status':"False",'error':"departure_date should be after today's day"}),content_type='application/javascript')
     except requests.exceptions.RequestException as e:
         print e
-    return HttpResponse(json.dumps(response_dict),content_type='application/javascript')
+    return HttpResponse(json.dumps(response_dict),content_type='application/javascript')           
 
+def rail_route_to_airport(frm,to,date,travel_class):
+    response_dict={} #example request=http://localhost:8000/airroute/?destination=Krishna%20Nagar,%20Mathura&departure_date=2016-04-03&travel_class=ECONOMY&origin=IIT%20Varanasi
+    date=date[8:10]+'-'+date[5:7]+'-'+date[:4]
+    print frm,to,date
+    try:
+        payload={'address':frm,'key':google_geocoding_api_key}
+        frm_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
+        if frm_loc_ob.status_code == requests.codes.ok:
+            frm_loc_json=frm_loc_ob.json()
+            add=frm_loc_json['results'][0]["address_components"]
+            flag=1
+            for element in add:
+                if element['types'][0]=="locality":
+                    source_city=element["long_name"]
+                    flag=0
+            if flag:
+                source_city=frm
+    except requests.exceptions.RequestException as e:
+        print e
+    print "first part done"
+    try:
+        payload={'address':to,'key':google_geocoding_api_key}
+        to_loc_ob = requests.get('https://maps.googleapis.com/maps/api/geocode/json',params=payload)
+        if to_loc_ob.status_code == requests.codes.ok:
+            to_loc_json=to_loc_ob.json()
+            add=to_loc_json['results'][0]["address_components"]
+            flag=1
+            for element in add:
+                if element['types'][0]=="locality":
+                    dest_city=element["long_name"]
+                    flag=0
+            if flag:
+                dest_city=to
+    except requests.exceptions.RequestException as e:
+        print e
+    print "second part done"
+    if travel_class=="":
+        travel_class="3A"
+    response_dict['from']=source_city
+    response_dict['to']=dest_city
+    try:
+        payload={'from_city':source_city,'to_city':dest_city,'class':travel_class,'date':date,'adults':1,'children':0,'male_seniors':0,'female_seniors':0}
+        path_html = requests.get('http://www.cleartrip.com/trains/results',params=payload)
+        path_html =path_html.text
+        soup = BeautifulSoup(path_html,'html.parser')
+        try:
+            train_data = soup.find_all("script", type="text/javascript",src=False)[2].get_text()[19:]
+        except IndexError as e:
+            response_dict["result"]="No direct train was found"
+            response_dict['not_found']=1
+            return response_dict
+        end_pos=train_data.find(',"trips":')
+        train_data = train_data[:(end_pos)]+'}'
+        train_data=str(train_data)
+        train_data=train_data.replace("true","True")
+        end_pos =train_data.find(',"3":{"distance')
+        if end_pos>0:
+            train_data=train_data[:end_pos]+'}}'
+        train_data=ast.literal_eval(train_data)
+        response_dict['train_data']=train_data       
+        frm_stn_name=train_data["trains"]["1"]["from"]+" Station"
+        to_stn_name=train_data["trains"]["1"]["to"]+" Station"
+        my_dict={}
+        try:
+            payload={'origins':frm,'destinations':frm_stn_name,'key':google_matrix_api_key}
+            my_loc_to_stn=requests.get('https://maps.googleapis.com/maps/api/distancematrix/json',params=payload)
+            if my_loc_to_stn.status_code == requests.codes.ok:
+                my_loc_to_stn=my_loc_to_stn.json()
+                my_dict['dist1']=my_loc_to_stn['rows'][0]['elements'][0]['distance']['text']
+                my_dict['time1']=my_loc_to_stn['rows'][0]['elements'][0]['duration']['text']
+        except requests.exceptions.RequestException as e:
+            print e       
+        try:
+            payload={'origins':to_stn_name,'destinations':to,'key':google_matrix_api_key}
+            my_loc_to_stn=requests.get('https://maps.googleapis.com/maps/api/distancematrix/json',params=payload)
+            if my_loc_to_stn.status_code == requests.codes.ok:
+                my_loc_to_stn=my_loc_to_stn.json()
+                my_dict['dist2']=my_loc_to_stn['rows'][0]['elements'][0]['distance']['text']
+                my_dict['time2']=my_loc_to_stn['rows'][0]['elements'][0]['duration']['text']
+        except requests.exceptions.RequestException as e:
+            print e
+        response_dict['step1']="Travel from "+ frm +" to " + frm_stn_name +" which is "+ my_dict['dist1']+" away and takes "+my_dict['time1']
+        response_dict['step2']="Board the suitable train form the list"
+        response_dict['step3']="Travel from "+ to_stn_name +" to " + to + " which is "+ my_dict['dist2']+" away and takes "+my_dict['time2']
+        response_dict['my_dict']=my_dict
+        response_dict['not_found']=0
+    except requests.exceptions.RequestException as e:
+        print e
+    return response_dict
 
 def air_route_to_tour(frm,to,date,travel_class):
     flag1,flag2=[0,0]
@@ -519,10 +663,29 @@ def valid_date(datestring):
 
 @ratelimit(key='ip', rate=rate, block=True)
 def predict_city(request):
-    response_dict={} #example request=http://localhost:8000/predict_city/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3
-    frm=request.GET.get('origin', '')
-    if frm=="":
-        return HttpResponse(json.dumps({'status':"False",'error':"plz specify the origin"}),content_type='application/javascript')
+    public_key=request.GET.get('public_key', '') #example request=http://localhost:8000/predict_city/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=
+    # print "public_key",public_key
+    if public_key=='':
+        return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not provided"}),content_type='application/javascript')
+    else:
+        found=False
+        frm=request.GET.get('origin', '')
+        if frm=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"origin not specfied"}),content_type='application/javascript')
+        parsed_string=request.GET.get('parsed_string','')
+        if parsed_string=='':
+            return HttpResponse(json.dumps({'status':"False",'error':"parsed_string not provided"}),content_type='application/javascript')
+        for user in UserDetails.objects.all():
+            if user.public_key==public_key:
+                u_private_key=user.private_key
+                expected_parsed_string=provide_hash(frm,u_private_key)
+                if expected_parsed_string!=parsed_string:
+                    return HttpResponse(json.dumps({'status':"False",'error':"wrong parsed_string given"}),content_type='application/javascript')
+                found=True
+                break
+        if found==False:
+            return HttpResponse(json.dumps({'status':"False",'error':"Authentication failed, public_key not found"}),content_type='application/javascript')
+    response_dict={} 
     date=request.GET.get('departure_date', '')
     if valid_date(date)==False:
         if date!="":
@@ -584,7 +747,7 @@ def predict_city(request):
 
 @ratelimit(key='ip', rate=rate, block=True)
 def predict_city_with_journey(request):
-    response_dict={} #example request=http://localhost:8000/predict_city/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3
+    response_dict={} #example request=http://localhost:8000/predict_city_with_journey/?departure_date=2016-04-03&origin=IIT%20Varanasi&duration=3&public_key=djWMgJqbAumanTIi034sO26lG19KfYDkxUwZLEc7otzpXHB8Fy&parsed_string=NKosistZBEUvJYFpHVO9836FtRna2SxYQ0AkjawS8/A=
     mode=request.GET.get('mode','')
     if mode=="":
         mode='rail'
@@ -715,9 +878,10 @@ def newtoken(request):
     if request.method == "POST":
         try:
             u = UserDetails.objects.get(user=request.user)
-            u.key = generate_key()
+            u.private_key = generate_key()
+            u.public_key = generate_key()
             u.save()
-            return JsonResponse({"token":u.key})
+            return JsonResponse({"private_key":u.private_key,'public_key':u.public_key})
         except Exception as e:
             print e
             return JsonResponse({"error":"true"})

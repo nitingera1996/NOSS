@@ -3,21 +3,22 @@ from django.contrib.auth.models import User
 
 class UserDetails(models.Model):
 	user = models.OneToOneField(User)
-	key = models.CharField(max_length=50)
+	private_key = models.CharField(max_length=50)
+	public_key = models.CharField(max_length=50)
 
 	def __unicode__(self):
 		return self.user.email
 
 class Tags(models.Model):
-	name=models.CharField(max_length="15")
+	name=models.CharField(max_length=50)
 
 	def __unicode__(self):
 		return self.name
 		
 class City(models.Model):
-	name = models.CharField(max_length="100")
-	lat = models.CharField(max_length=8,default="0.00")
-	lng = models.CharField(max_length=8,default="0.00")
+	name = models.CharField(max_length=100)
+	lat = models.CharField(max_length=15,default="0.00")
+	lng = models.CharField(max_length=15,default="0.00")
 	tags = models.ManyToManyField(Tags)
 	rating = models.IntegerField(default='1')
 

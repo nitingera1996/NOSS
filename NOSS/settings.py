@@ -101,15 +101,22 @@ if 'ON_HEROKU' in os.environ:
     DEBUG = False
     import dj_database_url
     DATABASES['default'] =  dj_database_url.config()
-
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-        'LOCATION': os.path.join(BASE_DIR, 'my_cache_table'),
+    import herokuify
+    CACHES = herokuify.get_cache_config()
+else:        
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': os.path.join(BASE_DIR, 'my_cache_table'),
+        }
     }
-}
 
+
+if 'DEBUG' in os.environ:
+    if os.environ['DEBUG']=="TRUE":
+        DEBUG=True
+    else:
+        DEBUG=False
 
 # Update database configuration with $DATABASE_URL.
 # import dj_database_url
